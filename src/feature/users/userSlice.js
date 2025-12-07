@@ -12,44 +12,47 @@ const initialState = {
         page: 1,
         limit: savedSettings.limit || 10,
         hasMore: true,
-        pageCount: 1, // Tổng số trang
+        pageCount: 1,
     },
     sorting: {
         sortBy: savedSettings.sortBy || 'createdAt',
         order: savedSettings.order || 'desc',
     },
     selectedUser: null,
-    total: 0, // Tổng số bản ghi (quan trọng)
+    total: 0,
     cache: {},
 };
 
-const generateCacheKey = (pagination, sorting) => {
-    return `p-${pagination.page}_l-${pagination.limit}_s-${sorting.sortBy}_o-${sorting.order}`;
-};
-
-export const fetchUsers = createAsyncThunk(
-  'users/fetchUsers',
-  async (_, { getState, rejectWithValue }) => {
+export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, { getState, rejectWithValue }) => {
     try {
-      const { pagination, sorting } = getState().users;
+        const { pagination, sorting, cache, total } = getState().users;
+        const key = `${pagination.page}-${pagination.limit}-${sorting.sortBy}-${sorting.order}`;
+        if (cache[key]) {
+            return {
+                data: cache[key],
+                total: total,
+                key: key,
+                fromCache: true
+            };
+        }
+        const res = await userApi.getAll(
+            pagination.page,
+            pagination.limit,
+            sorting.sortBy,
+            sorting.order
+        );
+        const totalUsers = await userApi.getTotal();
 
-      const res = await userApi.getAll(
-        pagination.page,
-        pagination.limit,
-        sorting.sortBy,
-        sorting.order
-      );
-
-      const total = await userApi.getTotal(); // ⬅ lấy total thật từ server
-
-      return {
-        data: res.data,
-        total,
-      };
+        return {
+            data: res.data,
+            total: totalUsers,
+            key: key,
+            fromCache: false
+        };
     } catch (err) {
-      return rejectWithValue(err.message);
+        return rejectWithValue(err.message);
     }
-  }
+}
 );
 
 
@@ -75,18 +78,14 @@ const userSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // --- FETCH ---
             .addCase(fetchUsers.pending, (state) => { state.status = 'loading'; })
             .addCase(fetchUsers.fulfilled, (state, action) => {
                 state.status = 'succeeded';
-
                 const { data, total, key } = action.payload;
-
-                state.list = Array.isArray(data) ? data : [];  // ⬅ CHÌA KHÓA
+                state.list = Array.isArray(data) ? data : [];
 
                 state.total = total ?? 0;
                 state.pagination.pageCount = Math.ceil(state.total / state.pagination.limit) || 1;
-
                 if (!action.payload.fromCache) {
                     state.cache[key] = data;
                 }
@@ -99,7 +98,7 @@ const userSlice = createSlice({
             .addCase(addUser.fulfilled, (state) => {
                 state.status = 'idle';
                 state.cache = {};
-                state.total += 1; // Tăng tổng số
+                state.total += 1;
             })
             // --- UPDATE ---
             .addCase(updateUser.fulfilled, (state) => {
@@ -111,7 +110,7 @@ const userSlice = createSlice({
             .addCase(deleteUser.fulfilled, (state, action) => {
                 state.list = state.list.filter(user => user.id !== action.meta.arg);
                 state.cache = {};
-                state.total -= 1; // Giảm tổng số
+                state.total -= 1;
             });
     },
 });

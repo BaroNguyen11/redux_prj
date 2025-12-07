@@ -8,9 +8,10 @@ import {
     DropdownContent,
     DropdownMenuItem
 } from '../../components/ui/dropdown';
+import { toast, ToastContainer } from 'react-toastify';
 
 // --- STYLE CONSTANTS ---
-const SHADOW_INSET_BLUE = "shadow-[inset_0px_-2px_10px_0px_hsl(214,72%,35%)]";
+const SHADOW_INSET_BLUE = "shadow-[inset_0px_-1px_7px_0px_hsl(214,72%,35%)]";
 const CLAY_BTN = "hover:scale-[1.02] active:scale-[0.98] transition-all";
 const ERROR_TEXT = "text-red-500 text-[10px] font-bold mt-1 ml-2 flex items-center gap-1";
 
@@ -228,12 +229,15 @@ const UsersForm = ({ onClose }) => {
             };
             if (selectedUser?.id) await dispatch(updateUser({ id: selectedUser.id, data: payload })).unwrap();
             else await dispatch(addUser(payload)).unwrap();
+            toast.success(`Người dùng đã được ${selectedUser ? 'cập nhật' : 'thêm'} thành công!`);
             dispatch(fetchUsers());
             onClose();
         } catch (err) { alert('Lỗi: ' + err.message); }
     };
 
     return (
+       <>
+       
         <div className="w-full h-full flex flex-col max-h-[90vh] bg-white font-sans">
             {/* HEADER */}
             <div className="p-6 flex justify-between items-center bg-white z-10 border-b border-dashed border-slate-200">
@@ -250,11 +254,11 @@ const UsersForm = ({ onClose }) => {
                 </div>
 
                 {selectedUser && !isEditing && (
-                    <button type="button" onClick={() => setIsEditing(true)} className="flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-50 text-indigo-600 font-bold hover:bg-indigo-100 transition-colors mr-2 cursor-pointer">
+                    <button type="button" onClick={() => setIsEditing(true)} className={`flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-50 text-indigo-600 font-bold hover:bg-indigo-100 transition-colors mr-2 cursor-pointer } ${SHADOW_INSET_BLUE}`}>
                         <Edit3 size={16} /> <span>Sửa</span>
                     </button>
                 )}
-                <button type="button" onClick={onClose} className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-red-100 hover:text-red-500 transition-colors cursor-pointer">
+                <button type="button" onClick={onClose} className={`w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-red-100 hover:text-red-500 transition-colors cursor-pointer ${SHADOW_INSET_BLUE}`}>
                     <X size={20} strokeWidth={3} />
                 </button>
             </div>
@@ -344,7 +348,7 @@ const UsersForm = ({ onClose }) => {
                             <label className="block text-[11px] font-black text-slate-400 mb-1.5 uppercase tracking-widest ml-1">Mô tả chi tiết</label>
                             <textarea
                                 name="desc" value={formData.desc || ''} onChange={handleChange} rows="3" disabled={!isEditing}
-                                className={`${getInputClass(!isEditing, false)} h-auto min-h-[80px] resize-none py-4`}
+                                className={`${getInputClass(!isEditing, false)} h-auto min-h-20 resize-none py-4`}
                             ></textarea>
                         </div>
                     </div>
@@ -354,7 +358,7 @@ const UsersForm = ({ onClose }) => {
             {/* FOOTER */}
             {isEditing && (
                 <div className="px-6 py-4 flex justify-end gap-4 bg-white border-t border-dashed border-slate-200 z-10 animate-[fadeIn_0.2s_ease-out]">
-                    <button type="button" onClick={() => selectedUser ? setIsEditing(false) : onClose()} className={`px-8 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 cursor-pointer ${SHADOW_INSET_BLUE} hover:shadow-none border border-slate-200 transition-all`}>Hủy</button>
+                    <button type="button" onClick={() => selectedUser ? setIsEditing(false) : onClose()} className={`px-8 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 cursor-pointer ${SHADOW_INSET_BLUE} ${CLAY_BTN} border border-slate-200 transition-all`}>Hủy</button>
                     <button onClick={handleSubmit} disabled={isLoading} className={`flex items-center gap-3 px-6 py-3 rounded-xl bg-[#3189fb] text-white font-black ${SHADOW_INSET_BLUE} ${CLAY_BTN} disabled:opacity-50 cursor-pointer`}>
                         {isLoading ? <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div> : <Save size={20} strokeWidth={3} />}
                         <span>LƯU LẠI</span>
@@ -362,6 +366,8 @@ const UsersForm = ({ onClose }) => {
                 </div>
             )}
         </div>
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover limit={3} />
+        </>
     );
 };
 

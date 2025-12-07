@@ -7,16 +7,13 @@ const VirtualList = ({ items, itemHeight = 60, renderItem, containerHeight = "10
 
   useEffect(() => {
     if (!containerRef.current) return;
-    
-    // Hàm đo chiều cao
+
     const measure = () => {
         const h = containerRef.current.clientHeight;
         if (h > 0) setViewHeight(h);
     };
 
-    measure(); // Đo ngay
-
-    // Fallback: Nếu đo ra 0 (do chưa render xong), thử lại sau 100ms
+    measure(); 
     if (containerRef.current.clientHeight === 0) {
         setTimeout(measure, 100);
     }

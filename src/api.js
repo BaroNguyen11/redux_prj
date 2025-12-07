@@ -1,4 +1,3 @@
-// api.js
 const BASE_URL = 'https://671891927fc4c5ff8f49fcac.mockapi.io/v2/';
 
 export const userApi = {
@@ -10,14 +9,14 @@ export const userApi = {
     url.searchParams.append('order', order);
 
     const response = await fetch(url);
-
     if (!response.ok) {
       throw new Error('Failed to fetch data');
     }
-    const data = await response.json();
-    const total = Number(response.headers.get("X-Total-Count") || 0);
 
-    return { data, total };
+    const data = await response.json();
+
+
+    return { data };
   },
   getTotal: async () => {
     const url = new URL(BASE_URL);
@@ -27,7 +26,7 @@ export const userApi = {
     if (!response.ok) throw new Error('Failed to fetch total');
     const data = await response.json();
 
-    return data.length;  // ⬅ số lượng user thật
+    return data.length;
   },
   add: async (data) => {
     const { id, ...cleanData } = data;
